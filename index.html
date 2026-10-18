@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SAD Assignment 02 - Client-side and Server-side Data Validation Form">
+    <title>Data Validation Form</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ─── Reset & Base ──────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 16px;
+        }
+
+        .page-title {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        /* ─── Card ──────────────────────────────────────────────── */
+        .card {
+            background: #fff;
+            width: 100%;
+            max-width: 440px;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        /* ─── Header Banner ─────────────────────────────────────── */
+        .card-header {
+            background: linear-gradient(135deg, #4285f4, #5b9cf6);
+            color: #fff;
+            padding: 18px 24px;
+        }
+        .card-header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .card-header .student-info {
+            font-size: 0.82rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* ─── Form Body ─────────────────────────────────────────── */
+        .card-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: #1a1a2e;
+            background: #fafbfc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #aaa;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #4285f4;
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+            background: #fff;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        /* ─── Error styling on invalid fields ──────────────────── */
+        .form-group input.invalid,
+        .form-group textarea.invalid {
+            border-color: #e53935;
+            box-shadow: 0 0 0 2px rgba(229, 57, 53, 0.12);
+        }
+        .form-group .error-msg {
+            display: none;
+            font-size: 0.78rem;
+            color: #e53935;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+        .form-group .error-msg.visible {
+            display: block;
+        }
+
+        /* ─── Submit Button ─────────────────────────────────────── */
+        .btn-submit {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #4285f4, #5b9cf6);
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+            margin-top: 4px;
+        }
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(66, 133, 244, 0.35);
+        }
+        .btn-submit:active { transform: translateY(0); }
+
+        /* ─── Server-Side Results Card ──────────────────────────── */
+        .results-card {
+            background: #fff;
+            width: 100%;
+            max-width: 440px;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            display: none;
+            margin-bottom: 24px;
+            border: 2px solid #4285f4;
+        }
+        .results-card.visible { display: block; }
+
+        .results-header {
+            background: #f5f7fa;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .results-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+        .results-header .evaluator {
+            font-size: 0.82rem;
+            color: #555;
+        }
+        .results-header .evaluator strong {
+            color: #333;
+        }
+
+        .results-body {
+            padding: 20px 24px;
+        }
+        .results-body .success-label {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #2e7d32;
+            margin-bottom: 14px;
+        }
+        .results-body .result-row {
+            font-size: 0.88rem;
+            margin-bottom: 8px;
+            line-height: 1.5;
+            color: #333;
+        }
+        .results-body .result-row strong {
+            color: #1a1a2e;
+        }
+        .results-body .status-line {
+            margin-top: 16px;
+            font-size: 0.82rem;
+            color: #2e7d32;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        /* ─── Conclusion Section ────────────────────────────────── */
+        .conclusion {
+            width: 100%;
+            max-width: 440px;
+            display: none;
+            margin-top: 8px;
+        }
+        .conclusion.visible { display: block; }
+        .conclusion h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1a1a2e;
+        }
+        .conclusion p {
+            font-size: 0.88rem;
+            color: #444;
+            line-height: 1.7;
+        }
+
+        /* ─── Section label between form & results ──────────────── */
+        .section-label {
+            width: 100%;
+            max-width: 440px;
+            font-size: 0.85rem;
+            color: #777;
+            margin-bottom: 12px;
+            font-style: italic;
+            display: none;
+        }
+        .section-label.visible { display: block; }
+    </style>
+</head>
+<body>
+
+    <p class="page-title">Data validation form</p>
+
+    <!-- ─── Form Card ──────────────────────────────────────────── -->
+    <div class="card" id="form-card">
+        <div class="card-header">
+            <h1>Data Validation Form</h1>
+
+        </div>
+        <div class="card-body">
+            <form id="validation-form" novalidate>
+                <div class="form-group">
+                    <label for="fullname">Full Name:</label>
+                    <input type="text" id="fullname" name="fullname" placeholder="Enter full name" required>
+                    <p class="error-msg" id="err-name">Error: Name must be at least 2 characters.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address:</label>
+                    <input type="email" id="email" name="email" placeholder="example@mail.com" required>
+                    <p class="error-msg" id="err-email">Error: Enter a valid email (e.g., user@mail.com).</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="mobile">Mobile Number (10 digits):</label>
+                    <input type="text" id="mobile" name="mobile" placeholder="9876543210" maxlength="10" required>
+                    <p class="error-msg" id="err-mobile">Error: Mobile must be 10 digits starting with 6-9.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="age">Age (18 - 60):</label>
+                    <input type="text" id="age" name="age" placeholder="Enter age" required>
+                    <p class="error-msg" id="err-age">Error: Age must be a number between 18 and 60.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="comment">Comment (optional):</label>
+                    <textarea id="comment" name="comment" placeholder="Enter your comment (optional)"></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submit-btn">Submit Form</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ─── Client-side error label ────────────────────────────── -->
+    <p class="section-label" id="client-label">Client-side JavaScript catching invalid input</p>
+
+    <!-- ─── The /process route accepting valid data ─────────────── -->
+    <p class="section-label" id="server-label">The /process route accepting valid data.</p>
+
+    <!-- ─── Server-Side Results Card ───────────────────────────── -->
+    <div class="results-card" id="results-card">
+        <div class="results-header">
+            <h2>Server-Side Validation Results</h2>
+
+        </div>
+        <div class="results-body">
+            <p class="success-label" id="res-status-label">Data Validation Successful!</p>
+            <div id="res-fields"></div>
+            <p class="status-line" id="res-status-line"></p>
+        </div>
+    </div>
+
+    <!-- ─── Conclusion ─────────────────────────────────────────── -->
+    <div class="conclusion" id="conclusion-section">
+        <h2>Conclusion</h2>
+        <p>In this assignment, client-side and server-side data validation were implemented and tested.
+            JavaScript provided immediate feedback and reduced unnecessary server requests, while Python
+            validation and output encoding acted as the security boundary against tampered input and script
+            injection. All lab objectives were achieved.</p>
+    </div>
+
+    <script>
+        // ─── DOM Elements ─────────────────────────────────────────
+        const form = document.getElementById('validation-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const resultsCard = document.getElementById('results-card');
+        const serverLabel = document.getElementById('server-label');
+        const conclusionSection = document.getElementById('conclusion-section');
+
+        const fields = {
+            name:    document.getElementById('fullname'),
+            email:   document.getElementById('email'),
+            mobile:  document.getElementById('mobile'),
+            age:     document.getElementById('age'),
+            comment: document.getElementById('comment')
+        };
+
+        const errors = {
+            name:   document.getElementById('err-name'),
+            email:  document.getElementById('err-email'),
+            mobile: document.getElementById('err-mobile'),
+            age:    document.getElementById('err-age')
+        };
+
+        // ─── Client-Side Validation ───────────────────────────────
+        function validateField(key) {
+            const val = fields[key].value.trim();
+            let valid = true;
+
+            switch (key) {
+                case 'name':
+                    valid = val.length >= 2;
+                    break;
+                case 'email':
+                    valid = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(val);
+                    break;
+                case 'mobile':
+                    valid = /^[6-9]\d{9}$/.test(val);
+                    break;
+                case 'age':
+                    const n = parseInt(val);
+                    valid = !isNaN(n) && n >= 18 && n <= 60;
+                    break;
+            }
+
+            if (valid) {
+                fields[key].classList.remove('invalid');
+                if (errors[key]) errors[key].classList.remove('visible');
+            } else {
+                fields[key].classList.add('invalid');
+                if (errors[key]) errors[key].classList.add('visible');
+            }
+
+            return valid;
+        }
+
+        // Real-time validation on blur
+        ['name', 'email', 'mobile', 'age'].forEach(key => {
+            fields[key].addEventListener('blur', () => validateField(key));
+            fields[key].addEventListener('input', () => {
+                if (fields[key].classList.contains('invalid')) {
+                    validateField(key);
+                }
+            });
+        });
+
+        // ─── Form Submission ──────────────────────────────────────
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Run all client-side validations
+            const v1 = validateField('name');
+            const v2 = validateField('email');
+            const v3 = validateField('mobile');
+            const v4 = validateField('age');
+
+            if (!(v1 && v2 && v3 && v4)) {
+                // Show client-side error label
+                document.getElementById('client-label').classList.add('visible');
+                return;
+            }
+
+            // Client validation passed, hide client label
+            document.getElementById('client-label').classList.remove('visible');
+
+            // Send to Flask /process route
+            const payload = {
+                name:    fields.name.value.trim(),
+                email:   fields.email.value.trim(),
+                mobile:  fields.mobile.value.trim(),
+                age:     fields.age.value.trim(),
+                comment: fields.comment.value.trim()
+            };
+
+            try {
+                const res = await fetch('/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showResults(data);
+                } else {
+                    // Server validation errors (shouldn't happen if client validates first)
+                    alert('Server validation errors:\n' + data.errors.join('\n'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Could not reach the Flask server. Make sure app.py is running.');
+            }
+        });
+
+        // ─── Display Server Results ───────────────────────────────
+        function showResults(data) {
+            const studentEl = document.getElementById('res-student');
+            if (studentEl) studentEl.textContent = data.student;
+
+            const fieldsHtml = `
+                <p class="result-row"><strong>Sanitized Name:</strong> ${data.sanitized_name}</p>
+                <p class="result-row"><strong>Validated Email:</strong> ${data.sanitized_email}</p>
+                <p class="result-row"><strong>Validated Mobile:</strong> ${data.sanitized_mobile}</p>
+                <p class="result-row"><strong>Validated Age:</strong> ${data.validated_age}</p>
+                <p class="result-row"><strong>Sanitized Comment:</strong> ${data.sanitized_comment}</p>
+            `;
+            document.getElementById('res-fields').innerHTML = fieldsHtml;
+            document.getElementById('res-status-line').textContent = data.status;
+
+            // Show results card, server label, and conclusion
+            serverLabel.classList.add('visible');
+            resultsCard.classList.add('visible');
+            conclusionSection.classList.add('visible');
+
+            // Scroll to results
+            resultsCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    </script>
+</body>
+</html>
